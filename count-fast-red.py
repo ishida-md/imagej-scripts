@@ -54,11 +54,11 @@ def close_windows():
         IJ.selectWindow(w)
         IJ.run("Close")
     
-def run_script():
+def main():
     jpgs = get_jpglist()
     for i in jpgs:
         analyze_image(i)
         close_windows()
 
 if __name__ in ['__builtin__', '__main__']:
-    run_script()
+    main()
