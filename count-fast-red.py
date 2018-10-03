@@ -6,11 +6,17 @@ from ij.measure import ResultsTable, Measurements
 from ij.plugin.filter import ParticleAnalyzer
 from ij.plugin.frame import RoiManager
 from ij.gui import GenericDialog, WaitForUserDialog, Roi
-from ij.io import DirectoryChooser
+from ij.io import DirectoryChooser, OpenDialog
+import ConfigParser
 
-binary_threshold = 180
-part_min = 500
-part_max = 10000
+def set_config():
+    configfile = OpenDialog("Choose your config file").getPath()
+    config = ConfigParser.RawConfigParser()
+    config.read(configfile)
+    global binary_threshold, part_min, part_max
+    binary_threshold, part_min, part_max = int(config.get('Binary', 'bin_threshold')), int(config.get('Particle', 'particle_min')), int(config.get('Particle', 'particle_max'))
+    print(type(binary_threshold))
+    print(binary_threshold)
 
 def get_jpglist():
     imagedir = DirectoryChooser("Choose your image directory").getDirectory()
@@ -18,7 +24,7 @@ def get_jpglist():
     jpgs = [imagedir + i for i in files if "jpg" in i.lower()]
     return(jpgs)
 
-def roi_select():
+def select_roi():
     rm = RoiManager.getInstance()
     if not rm:
         rm = RoiManager()
@@ -30,7 +36,7 @@ def roi_select():
 def analyze_image(path):
     img = IJ.openImage(path)
     img.show()
-    nroi = roi_select()
+    nroi = select_roi()
     IJ.run(img, "Colour Deconvolution", "vectors=[FastRed FastBlue DAB]")
     windows = WindowManager.getImageTitles()
     redwindow = [s for s in windows if "Colour_1" in s]
@@ -55,6 +61,7 @@ def close_windows():
         IJ.run("Close")
     
 def main():
+    set_config()
     jpgs = get_jpglist()
     for i in jpgs:
         analyze_image(i)
